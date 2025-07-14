@@ -1,0 +1,42 @@
+@page "/menumanagement"
+@attribute [Authorize(Roles = "Admin")]
+@inject IMenuService MenuService
+
+<h3>Menu Management</h3>
+
+<FluentButton Appearance="Appearance.Accent" @onclick="() => OpenAddMenuDialog()">Create Menu</FluentButton>
+
+@if (menus == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <FluentTreeView>
+        @foreach (var menu in menus)
+        {
+            <FluentTreeItem Text="@menu.Name">
+                <FluentTreeView>
+                    @foreach (var subMenu in menu.SubMenus)
+                    {
+                        <FluentTreeItem Text="@subMenu.Name" />
+                    }
+                </FluentTreeView>
+            </FluentTreeItem>
+        }
+    </FluentTreeView>
+}
+
+@code {
+    private IEnumerable<Menu> menus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        menus = await MenuService.GetMenusAsync();
+    }
+
+    private void OpenAddMenuDialog()
+    {
+        // Open a dialog to add a new menu
+    }
+}

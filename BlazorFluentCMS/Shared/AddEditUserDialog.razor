@@ -1,0 +1,83 @@
+@using BlazorFluentCMS.Core
+@using Microsoft.AspNetCore.Identity
+
+@if (IsVisible)
+{
+    <FluentDialog @ref="dialog" Modal="true" TrapFocus="true">
+        <FluentDialogHeader>
+            <FluentLabel Typo="Typography.H6">@(IsEditMode ? "Edit User" : "Add User")</FluentLabel>
+        </FluentDialogHeader>
+        <FluentDialogBody>
+            <EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <FluentTextField @bind-Value="user.UserName" Label="User Name" Required="true" />
+                <FluentTextField @bind-Value="user.Email" Label="Email" Required="true" />
+                @if (!IsEditMode)
+                {
+                    <FluentTextField @bind-Value="password" Label="Password" Type="TextFieldType.Password" Required="true" />
+                }
+                <FluentSelect Label="Roles" @bind-Value="selectedRoles" Multiple="true">
+                    @foreach (var role in AllRoles)
+                    {
+                        <FluentOption Value="@role.Name">@role.Name</FluentOption>
+                    }
+                </FluentSelect>
+            </EditForm>
+        </FluentDialogBody>
+        <FluentDialogFooter>
+            <FluentButton Appearance="Appearance.Accent" @onclick="HandleValidSubmit">Save</FluentButton>
+            <FluentButton @onclick="Hide">Cancel</FluentButton>
+        </FluentDialogFooter>
+    </FluentDialog>
+}
+
+@code {
+    [Parameter]
+    public EventCallback<ApplicationUser> OnSave { get; set; }
+
+    [Parameter]
+    public List<IdentityRole> AllRoles { get; set; }
+
+    private ApplicationUser user;
+    private bool IsEditMode;
+    private bool IsVisible;
+    private string password;
+    private List<string> selectedRoles = new();
+    private FluentDialog dialog;
+
+    [Inject]
+    private UserManager<ApplicationUser> UserManager { get; set; }
+
+    public async Task Show(ApplicationUser user, bool isEditMode)
+    {
+        this.user = user;
+        IsEditMode = isEditMode;
+        if (isEditMode)
+        {
+            selectedRoles = (await UserManager.GetRolesAsync(user)).ToList();
+        }
+        else
+        {
+            selectedRoles.Clear();
+        }
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Get the selected roles and assign them to the user
+        var roles = await UserManager.GetRolesAsync(user);
+        await UserManager.RemoveFromRolesAsync(user, roles);
+        await UserManager.AddToRolesAsync(user, selectedRoles);
+
+        await OnSave.InvokeAsync(user);
+        Hide();
+    }
+}

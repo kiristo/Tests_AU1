@@ -1,0 +1,44 @@
+@page "/map"
+@using GoogleMaps.Blazor.Components
+@using GoogleMaps.Blazor.Data
+@inject IArticleService ArticleService
+@inject IJSRuntime JSRuntime
+
+<h3>Map</h3>
+
+<GoogleMap @ref="googleMap" Id="map1" Options="@mapOptions" />
+
+@code {
+    private GoogleMap googleMap;
+    private MapOptions mapOptions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mapOptions = new MapOptions()
+        {
+            Zoom = 8,
+            Center = new LatLng(46.2276, 2.2137), // France
+            MapTypeId = MapTypeId.Roadmap
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var articles = await ArticleService.GetArticlesAsync();
+            foreach (var article in articles)
+            {
+                if (article.Latitude != 0 && article.Longitude != 0)
+                {
+                    var marker = new Marker()
+                    {
+                        Position = new LatLng(article.Latitude, article.Longitude),
+                        Title = article.Title
+                    };
+                    await googleMap.InteropObject.AddMarker(marker);
+                }
+            }
+        }
+    }
+}

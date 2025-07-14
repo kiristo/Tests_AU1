@@ -1,0 +1,15 @@
+<FluentNavMenu>
+    <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.24.Home())" IconColor="Color.Accent">Home</FluentNavLink>
+    <FluentNavLink Href="counter" Icon="@(new Icons.Regular.24.NumberSymbol())" IconColor="Color.Accent">Counter</FluentNavLink>
+    <FluentNavLink Href="weather" Icon="@(new Icons.Regular.24.WeatherCloudy())" IconColor="Color.Accent">Weather</FluentNavLink>
+    <FluentNavLink Href="map" Icon="@(new Icons.Regular.24.Map())" IconColor="Color.Accent">Map</FluentNavLink>
+    <FluentNavLink Href="login" Icon="@(new Icons.Regular.24.Person())" IconColor="Color.Accent">Login</FluentNavLink>
+    <FluentNavLink Href="register" Icon="@(new Icons.Regular.24.PersonAdd())" IconColor="Color.Accent">Register</FluentNavLink>
+    <AuthorizeView Roles="Admin">
+        <FluentNavLink Href="usermanagement" Icon="@(new Icons.Regular.24.People())" IconColor="Color.Accent">User Management</FluentNavLink>
+        <FluentNavLink Href="menumanagement" Icon="@(new Icons.Regular.24.Navigation())" IconColor="Color.Accent">Menu Management</FluentNavLink>
+    </AuthorizeView>
+    <AuthorizeView Roles="Admin,Rédacteur">
+        <FluentNavLink Href="articlemanagement" Icon="@(new Icons.Regular.24.Document())" IconColor="Color.Accent">Article Management</FluentNavLink>
+    </AuthorizeView>
+</FluentNavMenu>

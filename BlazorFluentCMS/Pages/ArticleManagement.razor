@@ -1,0 +1,46 @@
+@page "/articlemanagement"
+@attribute [Authorize(Roles = "Admin,Rédacteur")]
+@inject IArticleService ArticleService
+
+<h3>Article Management</h3>
+
+<FluentButton Appearance="Appearance.Accent" @onclick="() => OpenAddArticleDialog()">Create Article</FluentButton>
+
+@if (articles == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <FluentDataGrid Items="@articles">
+        <PropertyColumn Property="@(a => a.Title)" />
+        <TemplateColumn Title="Actions">
+            <FluentButton Appearance="Appearance.Lightweight" @onclick="() => OpenEditArticleDialog(context)">Edit</FluentButton>
+            <FluentButton Appearance="Appearance.Lightweight" @onclick="() => OpenDeleteArticleDialog(context)">Delete</FluentButton>
+        </TemplateColumn>
+    </FluentDataGrid>
+}
+
+@code {
+    private IEnumerable<Article> articles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await ArticleService.GetArticlesAsync();
+    }
+
+    private void OpenAddArticleDialog()
+    {
+        // Open a dialog to add a new article
+    }
+
+    private void OpenEditArticleDialog(Article article)
+    {
+        // Open a dialog to edit the article
+    }
+
+    private void OpenDeleteArticleDialog(Article article)
+    {
+        // Open a dialog to confirm deleting the article
+    }
+}

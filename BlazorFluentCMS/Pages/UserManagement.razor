@@ -1,0 +1,96 @@
+@page "/usermanagement"
+@attribute [Authorize(Roles = "Admin")]
+@inject IUserService UserService
+
+<h3>User Management</h3>
+
+<FluentButton Appearance="Appearance.Accent" @onclick="() => OpenAddUserDialog()">Create User</FluentButton>
+
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <FluentDataGrid Items="@users">
+        <PropertyColumn Property="@(u => u.UserName)" />
+        <PropertyColumn Property="@(u => u.Email)" />
+        <TemplateColumn Title="Actions">
+            <FluentButton Appearance="Appearance.Lightweight" @onclick="() => OpenEditUserDialog(context)">Edit</FluentButton>
+            <FluentButton Appearance="Appearance.Lightweight" @onclick="() => OpenDeleteUserDialog(context)">Delete</FluentButton>
+        </TemplateColumn>
+    </FluentDataGrid>
+}
+
+@inject IUserService UserService
+@inject IJSRuntime JSRuntime
+
+<AddEditUserDialog @ref="addEditUserDialog" OnSave="HandleSaveUser" AllRoles="@allRoles" />
+
+<FluentDialog @ref="deleteConfirmationDialog" Modal="true" TrapFocus="true">
+    <FluentDialogHeader>
+        <FluentLabel Typo="Typography.H6">Delete User</FluentLabel>
+    </FluentDialogHeader>
+    <FluentDialogBody>
+        <p>Are you sure you want to delete @userToDelete?.UserName?</p>
+    </FluentDialogBody>
+    <FluentDialogFooter>
+        <FluentButton Appearance="Appearance.Accent" @onclick="ConfirmDelete">Yes</FluentButton>
+        <FluentButton @onclick="() => deleteConfirmationDialog.Cancel()">No</FluentButton>
+    </FluentDialogFooter>
+</FluentDialog>
+
+@code {
+    private IEnumerable<ApplicationUser> users;
+    private AddEditUserDialog addEditUserDialog;
+    private List<IdentityRole> allRoles = new();
+    private FluentDialog deleteConfirmationDialog;
+    private ApplicationUser userToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserService.GetUsersAsync();
+        // In a real app, you would get the roles from a service
+        allRoles.Add(new IdentityRole("Admin"));
+        allRoles.Add(new IdentityRole("Rédacteur"));
+        allRoles.Add(new IdentityRole("Lecteur"));
+    }
+
+    private void OpenAddUserDialog()
+    {
+        addEditUserDialog.Show(new ApplicationUser(), false);
+    }
+
+    private void OpenEditUserDialog(ApplicationUser user)
+    {
+        addEditUserDialog.Show(user, true);
+    }
+
+    private async Task HandleSaveUser(ApplicationUser user)
+    {
+        if (string.IsNullOrEmpty(user.Id))
+        {
+            await UserService.CreateUserAsync(user, "DefaultPassword123!");
+        }
+        else
+        {
+            await UserService.UpdateUserAsync(user);
+        }
+        users = await UserService.GetUsersAsync();
+        StateHasChanged();
+    }
+
+    private void OpenDeleteUserDialog(ApplicationUser user)
+    {
+        userToDelete = user;
+        deleteConfirmationDialog.Show();
+    }
+
+    private async Task ConfirmDelete()
+    {
+        await UserService.DeleteUserAsync(userToDelete.Id);
+        users = await UserService.GetUsersAsync();
+        deleteConfirmationDialog.Cancel();
+        StateHasChanged();
+    }
+}
